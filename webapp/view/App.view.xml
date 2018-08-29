@@ -1,0 +1,16 @@
+<mvc:View controllerName="whoizz.ui5.starter.controller.App" displayBlock="true" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:whoizz="whoizz.ui5.starter.controls">
+	<App>
+		<Page id="mPage" title="{i18n>mPageTitle}">
+			<List width="100%" items="{sampleData>/}" visible="false">
+				<items>
+					<StandardListItem title="{sampleData>index}"/>
+				</items>
+			</List>
+			<whoizz:InfiniteList id="mInfinite" width="100%" height="100%" itemSize="48" scrollDirection="vertical" scrollToAlignment="center" items="{sampleData>/}" visible="true">
+				<whoizz:items>
+					<StandardListItem title="{sampleData>index}"/>
+				</whoizz:items>
+			</whoizz:InfiniteList>
+		</Page>
+	</App>
+</mvc:View>

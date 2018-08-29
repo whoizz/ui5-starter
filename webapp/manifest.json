@@ -1,0 +1,33 @@
+{
+	"sap.app": {
+		"id": "whoizz.ui5.starter",
+		"type": "application",
+		"i18n": "i18n/i18n.properties"
+	},
+	"sap.ui5": {
+		"dependencies": {
+			"libs": {
+				"sap.ui.core": {},
+				"sap.m": {}
+			}
+		},
+		"models": {
+			"i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"settings": {
+					"bundleName": "whoizz.ui5.starter.i18n.i18n"
+				},
+				"sampleData": {
+					"type": "sap.ui.model.json.JSONModel",
+					"uri": "data/Sample.json"
+				}
+			}
+		},
+		"rootView": {
+			"viewName": "whoizz.ui5.starter.view.App",
+			"id": "rootApp",
+			"type": "XML",
+			"async": true
+		}
+	}
+}

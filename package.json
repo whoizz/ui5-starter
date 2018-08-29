@@ -1,0 +1,27 @@
+{
+  "name": "ui5-starter",
+  "version": "0.0.1",
+  "description": "UI5 Starter",
+  "license": "MIT",
+  "main": "webapp/Component.js",
+  "dependencies": {
+    "@openui5/sap.m": "^1.56.4",
+    "@openui5/sap.ui.core": "^1.56.4",
+    "@openui5/themelib_sap_belize": "^1.56.4",
+    "yarn": "^1.9.4"
+  },
+  "devDependencies": {
+    "eslint": "^5.1.0"
+  },
+  "scripts": {
+    "start": "ui5 serve",
+    "build": "ui5 build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/whoizz/ui5-starter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/whoizz/ui5-starter/issues"
+  }
+}
