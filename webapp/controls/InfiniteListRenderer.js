@@ -10,17 +10,7 @@ sap.ui.define([
 		oRm.write("<div");
 		oRm.writeControlData(oControl);
 		oRm.addClass("mWrapStyle");
-		var sClasses = oControl.getClasses();
-		if (sClasses) {
-			oRm.addClass(sClasses);
-		}
 		oRm.writeClasses();
-		var oStyles = oControl.getStyles();
-		if (oStyles) {
-			for (var sStyle in oStyles) {
-				oRm.addStyle(sStyle, oStyles[sStyle]);
-			}
-		}
 		var sWidth = oControl.getWidth();
 		if (sWidth) {
 			oRm.addStyle("width", sWidth);

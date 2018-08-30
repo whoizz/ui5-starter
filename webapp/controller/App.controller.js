@@ -8,13 +8,26 @@ sap.ui.define([
 
 		onInit() {
    		var oModel = new sap.ui.model.json.JSONModel();
-   		oModel.setSizeLimit(1000000);
+   		// oModel.setSizeLimit(1000000);
 			oModel.loadData("data/Sample.json");
 			this.getView().setModel(oModel, "sampleData");
 		},
 
+		onAfterRendering() {
+			var oInfiniteList = this.getView().byId("mInfinite");
+			// oInfiniteList.setItemSize(this.getItemSize.bind(this));
+		},
+
 		onButtonPress(oEvent) {
 			MessageToast.show(oEvent.getSource().getBindingContext("sampleData").getProperty("company"));
+		},
+
+		getItemSize(iIndex) {
+			return 48 + parseInt(iIndex);
+		},
+
+		onListRendered(oEvent) {
+			console.debug(oEvent);
 		}
 
 	});

@@ -6,7 +6,7 @@
 					<StandardListItem title="{sampleData>index}"/>
 				</items>
 			</List>
-			<whoizz:InfiniteList id="mInfinite" width="100%" height="100%" itemSize="48" scrollDirection="vertical" scrollToAlignment="center" items="{sampleData>/}" visible="true">
+			<whoizz:InfiniteList id="mInfinite" width="100%" height="100%" scrollToIndex="25" scrollDirection="vertical" scrollToAlignment="start" items="{sampleData>/}" listRendered="onListRendered" visible="true">
 				<whoizz:items>
 					<StandardListItem title="{sampleData>index}"/>
 				</whoizz:items>

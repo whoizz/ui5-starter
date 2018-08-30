@@ -187,6 +187,10 @@ sap.ui.define([
 			vertical: "height",
 			horizontal: "width"
 		},
+		clientSizeProp: {
+			vertical: "clientHeight",
+			horizontal: "clientWidth"
+		},
 		positionProp: {
 			vertical: "top",
 			horizontal: "left"
@@ -212,12 +216,6 @@ sap.ui.define([
 
 		metadata: {
 			properties: {
-				classes: {
-					type: "string", defaultValue: null
-				},
-				styles: {
-					type: "object", defaultValue: null
-				},
 				screenItems: {
 					type: "int", defaultValue: 0
 				},				
@@ -228,16 +226,16 @@ sap.ui.define([
 					type: "float", defaultValue: null
 				},
 				scrollToIndex: {
-					type: "float", defaultValue: 'undefined'
+					type: "float", defaultValue: 0
 				},
 				scrollToAlignment: {
-					type: "string", defaultValue: "auto"
+					type: "string", defaultValue: null,
 				},
 				estimatedItemSize: {
 					type: "float", defaultValue: 'undefined'
 				},
 				itemSize: {
-					type: "float", defaultValue: 'undefined'
+					type: "any", defaultValue: null
 				},
 				width: {
 					type: "string", defaultValue: "100%"					
@@ -275,7 +273,15 @@ sap.ui.define([
 		return aItems ? aItems.length : 0;
 	};
 
-	InfiniteList.prototype.currentSizeProp = function () {
+	InfiniteList.prototype.clientSideSize = function() {
+		var oDomRef = this.getDomRef();
+		if (oDomRef) {
+			return oDomRef[this.clientSizeProp[this.getScrollDirection()]];
+		}
+		return 0;
+	};
+
+	InfiniteList.prototype.currentSizeProp = function() {
 		var sScrollDirection = this.getScrollDirection();
 		return this.sizeProp[sScrollDirection];
 	};
@@ -310,17 +316,8 @@ sap.ui.define([
 
 	InfiniteList.prototype.renderChunk = function() {
 		var oDomRef = this.getDomRef();
-		var iContainerSize = (typeof this.getProperty(this.currentSizeProp()) === 'number' ?  this.getProperty(this.currentSizeProp()) : 0);
-		if (iContainerSize === 0) {
-			switch (this.getProperty("scrollDirection")) {
-				case this.DIRECTION.DIRECTION_HORIZONTAL:
-					iContainerSize = oDomRef.clientWidth;
-					break;
-				case this.DIRECTION.DIRECTION_VERTICAL:
-					iContainerSize = oDomRef.clientHeight;
-					break;
-			}
-		}
+		var iSize = this.getProperty(this.currentSizeProp());
+		var iContainerSize = (typeof  iSize === 'number' ?  iSize : this.clientSideSize());
 		var oVisibleRange = this.sizeAndPositionManager.getVisibleRange(iContainerSize, this.offset, this.overscanCount);
 		if (typeof oVisibleRange.start !== 'undefined' && typeof oVisibleRange.stop !== 'undefined') {
 			var aItems = [];
@@ -347,7 +344,7 @@ sap.ui.define([
 				this._renderedItems = aElements;
 			}
 			this._updateStyles();
-			if (!this._isPureNumber(this.itemSize)) {
+			if (!this._isPureNumber(this.getItemSize())) {
 				this.innerStyle = Object.assign({}, STYLE_INNER);
 				this.innerStyle[this.currentSizeProp] = this._addUnit(this.sizeAndPositionManager.getTotalSize());
 			}
@@ -358,6 +355,7 @@ sap.ui.define([
 				"items": aItems,
 				"getStyle": this.getStyle.bind(this),
 			};
+			debugger;
 			this.fireListRendered(this._lastEvent);
 		}
 		this._listDidUpdate();
@@ -373,8 +371,8 @@ sap.ui.define([
 		var oDomRef = this.getDomRef();
 		if (oDomRef) {
 			this.wrapStyle = Object.assign({}, STYLE_WRAPPER);
-			this.wrapStyle["height"] = this._addUnit(this.getHeight());
 			this.wrapStyle["width"] = this._addUnit(this.getWidth());
+			this.wrapStyle["height"] = this._addUnit(this.getHeight());
 			Object.assign(oDomRef.style, this.wrapStyle);
 			this.innerStyle = Object.assign({}, STYLE_INNER);
 			this.innerStyle[this.currentSizeProp()] = this._addUnit(this.sizeAndPositionManager.getTotalSize());
@@ -386,16 +384,16 @@ sap.ui.define([
 		jQuery.sap.log.debug("init()");
 		this._oRm = sap.ui.getCore().createRenderManager();
 		this._createSizeAndPositionManager();
-		this._performScroll();
 	};
 
 	InfiniteList.prototype.onBeforeRendering = function() {
 		jQuery.sap.log.debug("onBeforeRendering()");
+		var iItemCount = this.itemCount();
 		this.recomputeSizes();
-		this.sizeAndPositionManager.updateConfig(this.itemCount(), this.getEstimatedItemSize());
+		this.sizeAndPositionManager.updateConfig(iItemCount, this.getEstimatedItemSize());
 		var iScrollToIndex = this.getProperty("scrollToIndex");
 		if (typeof iScrollToIndex === 'number') {
-			this.offset = this.getOffsetForIndex(iScrollToIndex, this.getProperty("scrollToAlignment"), this.itemCount());
+			this.offset = this.getOffsetForIndex(iScrollToIndex, this.getProperty("scrollToAlignment"), iItemCount);
 			this.scrollChangeReason = this.SCROLL_CHANGE_REASON.SCROLL_CHANGE_REQUESTED;
 		}
 	};
@@ -406,6 +404,7 @@ sap.ui.define([
 		if (oDomRef) {
 			oDomRef.addEventListener("scroll", this.handleScroll.bind(this), {passive: true});
 		}
+		this._performScroll();
 	};
 
 	InfiniteList.prototype.destroy = function() {
@@ -432,17 +431,20 @@ sap.ui.define([
 		}
 	};
 
-	InfiniteList.prototype.setScrollToAligment = function(sScrollToAligment) {
-		this.setProperty("scrollToAlignment", sScrollToAligment, false);
+	InfiniteList.prototype.setScrollToAligment = function(sScrollToAlignment) {
+		this.setProperty("scrollToAlignment", sScrollToAlignment, false);
 		var iScrollToIndex = this.getProperty("scrollToIndex");
 		if (typeof iScrollToIndex === 'number') {
-			this.offset = this.getOffsetForIndex(iScrollToIndex, this.getProperty("scrollToAlignment"), this.itemCount());
+			this.offset = this.getOffsetForIndex(iScrollToIndex, sScrollToAlignment, this.itemCount());
 			this.scrollChangeReason = this.SCROLL_CHANGE_REASON.SCROLL_CHANGE_REQUESTED;
 		}
 	};
 
-	InfiniteList.prototype.setItemSize = function(iItemSize) {
-		this.setProperty("itemSize", iItemSize, false);
+	InfiniteList.prototype.setItemSize = function(vItemSize) {
+		if (typeof vItemSize === 'string') {
+			vItemSize = parseFloat(vItemSize);
+		}
+		this.setProperty("itemSize", vItemSize, false);
 		this.recomputeSizes();
 		var iScrollToIndex = this.getProperty("scrollToIndex");
 		if (typeof iScrollToIndex === 'number') {
@@ -471,7 +473,7 @@ sap.ui.define([
 	InfiniteList.prototype.getEstimatedItemSize = function() {
 		var iEstimatedItemSize = this.getProperty("estimatedItemSize");
 		if (typeof iEstimatedItemSize === 'number') {
-			return iEstimatedItemSize
+			return iEstimatedItemSize;
 		}
 		var iItemSize = this.getProperty("itemSize");
 		return typeof iItemSize === 'number' && iItemSize || 50;
@@ -480,7 +482,7 @@ sap.ui.define([
 
 	InfiniteList.prototype._createSizeAndPositionManager = function() {
 		if (!this.sizeAndPositionManager) {
-			this.sizeAndPositionManager = new SizeAndPositionManager(this.itemCount(), this.getSize.bind(this), this.getEstimatedItemSize());
+			this.sizeAndPositionManager = new SizeAndPositionManager(this.itemCount(), this.getItemSize.bind(this), this.getEstimatedItemSize());
 		}
 		return this.sizeAndPositionManager;
 	};
@@ -495,7 +497,7 @@ sap.ui.define([
 			var sCurrentScrollProp = this.currentScrollProp();
 			return oDomRef[sCurrentScrollProp];
 		}
-		return -1;
+		return 0;
 	};
 
 	InfiniteList.prototype._performScroll = function() {
@@ -519,21 +521,26 @@ sap.ui.define([
 		}
 	};
 
-	InfiniteList.prototype.getOffsetForIndex = function(iIndex, sScrollToAligment, iItemCount) {
-		sScrollToAligment = sScrollToAligment || this.getProperty("scrollToAlignment");
+	InfiniteList.prototype.getOffsetForIndex = function(iIndex, sScrollToAlignment, iItemCount) {
+		sScrollToAlignment = sScrollToAlignment || this.getProperty("scrollToAlignment");
 		iItemCount = iItemCount || this.itemCount();
 		if (iIndex < 0 || iIndex >= iItemCount) {
 			iIndex = 0;
 		}
 		var iOffset = this.offset || 0;
-		return this.sizeAndPositionManager.getUpdatedOffsetForIndex(this.getProperty("scrollToAlignment"), this.getProperty(this.currentSizeProp()), iOffset, iIndex);
+		var iSize = this.getProperty(this.currentSizeProp());
+		return this.sizeAndPositionManager.getUpdatedOffsetForIndex(sScrollToAlignment, (typeof iSize === 'number' ? iSize : this.clientSideSize()), iOffset, iIndex);
 	};
 
-	InfiniteList.prototype.getSize = function(iIndex) {
-		if (typeof this.itemSize === 'function') {
-			return this.itemSize(iIndex);
+	InfiniteList.prototype.getItemSize = function(iIndex) {
+		var vItemSize = this.getProperty("itemSize");
+		if (vItemSize ===  null) {
+			return this.getEstimatedItemSize();
 		}
-		return this._isArray(this.itemSize) ? this.itemSize[iIndex] : this.getProperty("itemSize");
+		if (typeof vItemSize === 'function') {
+			return vItemSize(iIndex);
+		}
+		return this._isArray(vItemSize) ? vItemSize[iIndex] : vItemSize;
 	};
 
 	InfiniteList.prototype.recomputeSizes = function(startIndex) {
