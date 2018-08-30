@@ -326,7 +326,8 @@ sap.ui.define([
 			var oInnerNode = oDomRef ? jQuery(oDomRef).find(".mInnerStyle")[0] : null;
 			var iItemsInView = parseInt(iContainerSize / this.getEstimatedItemSize());
 			if (oDomRef && oInnerNode) {
-				aElements = this._newArray(oVisibleRange.stop - iItemsInView - (this.overscanCount * 2) > -1 ? oVisibleRange.stop - iItemsInView - (this.overscanCount * 2) : 0, oVisibleRange.stop);
+				oVisibleRange.start = (oVisibleRange.stop - iItemsInView - (this.overscanCount * 2) > -1 ? oVisibleRange.stop - iItemsInView - (this.overscanCount * 2) : 0);
+				aElements = this._newArray(oVisibleRange.start, oVisibleRange.stop);
 				aInvalidNodes = this._arrayDifferences(this._renderedItems, aElements);
 				aInvalidNodes.forEach(function(iIndex) {
 					jQuery(oInnerNode).find("div[id='" + this.getId() + "-item_" + iIndex + "']").remove();
@@ -355,7 +356,6 @@ sap.ui.define([
 				"items": aItems,
 				"getStyle": this.getStyle.bind(this),
 			};
-			debugger;
 			this.fireListRendered(this._lastEvent);
 		}
 		this._listDidUpdate();

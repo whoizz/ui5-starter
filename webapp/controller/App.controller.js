@@ -27,7 +27,7 @@ sap.ui.define([
 		},
 
 		onListRendered(oEvent) {
-			console.debug(oEvent);
+			debugger
 		}
 
 	});
